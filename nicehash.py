@@ -306,8 +306,11 @@ class private_api:
     def mining_status(self):
         return self.request('GET', '/main/api/v2/mining/algo/stats/', '', None)
 
-    def mining_payouts(self):
-        return self.request('GET', '/main/api/v2/mining/rigs/payouts/', '', None)
+    def mining_payouts(self, size=None):
+        query = ''
+        if size:
+            query = "size={}".format(size)
+        return self.request('GET', '/main/api/v2/mining/rigs/payouts/', query, None)
 
 
 if __name__ == "__main__":

@@ -16,8 +16,9 @@ bot = telebot.TeleBot(Telegram.token, parse_mode='HTML')
 
 access_list = [
     191707625,  # Вежливый Человек
-    447112770,  # Maks
-    886969895,  # Александр
+    1916896807, # Вежливый 2
+    # 447112770,  # Maks
+    # 886969895,  # Александр
     2081302780,  # Владимир
     2041822130,  # Артём
     910542534,  # Юля
@@ -49,7 +50,7 @@ class P_schedule:
     def start_schedule():  # Запуск schedule
         # Параметры для schedule
         # Отпавка по времени
-        schedule.every().day.at("11:27").do(P_schedule.send_stat_last_day)
+        schedule.every().day.at("09:00").do(P_schedule.send_stat_last_day)
         # Отправка по таймеру
         # schedule.every(1).minutes.do(P_schedule.send_message2)
 
@@ -66,7 +67,6 @@ class P_schedule:
     # Функции для выполнения заданий по времени
     @staticmethod
     def send_stat_last_day():
-
         btcrub = public_api.get_price()['BTCUSDT'] * float(ExchangeRates()['USD'].value) * 0.9898
         pay_btc = 0.0
         # список выплат
@@ -74,8 +74,12 @@ class P_schedule:
             pay_btc += float(pay['amount'])
         pay_rub = round(float(pay_btc) * btcrub * 0.9898, 2)
 
-        logging('%s send stat last day' % 191707625)
-        bot.send_message(191707625, '%s, %s' % (round(pay_btc, 8), pay_rub))
+        for user in access_list:
+            try:
+                logging('%s send stat last day' % user)
+                bot.send_message(user, msg_pay_day % (round(pay_btc, 8), pay_rub))
+            except:
+                logging('%s error time msg' % user)
 
 
 # Настройки команд telebot
@@ -114,7 +118,7 @@ def info_message(message):
     logging('%s /info' % message.chat.id)
     btc_rub = round(public_api.get_price()['BTCUSDT'] * float(ExchangeRates()['USD'].value) * 0.9898, 2)
 
-    profitability_btc = private_api.mining_status()['algorithms']['SCRYPT']['profitability']
+    profitability_btc = round(private_api.mining_status()['algorithms']['SCRYPT']['profitability'], 8)
     profitability_rub = round(float(profitability_btc) * btc_rub * 0.99, 2)
 
     balance_btc = private_api.get_accounts()['total']['totalBalance']
@@ -190,7 +194,7 @@ def pays_message_last(message):
 
     # список выплат
     for pay in private_api.mining_payouts()['list'][:12]:
-        datetime_pay = datetime.datetime.fromtimestamp(pay['created'] // 1000).strftime('%d.%m.%Y')
+        datetime_pay = datetime.datetime.fromtimestamp(pay['created'] // 1000).strftime('%d.%m.%Y %H:%M')
         pay_btc = pay['amount']
         pay_rub = round(float(pay_btc) * btcrub * 0.9898, 2)
         msg_pays += '<u>%s:</u> %s <i>BTC</i> (%s <i>руб</i>).\n' % (datetime_pay, pay_btc, pay_rub)
@@ -228,7 +232,7 @@ def pays_message_days(message):
         days[datetime.date(2021, 10, 23)] = 0.00008671
 
     # список выплат
-    for pay in private_api.mining_payouts()['list'][:70]:
+    for pay in private_api.mining_payouts(186)['list']:
         datetime_pay = datetime.datetime.fromtimestamp(pay['created'] // 1000).date()
         # print(pay)
         pay_btc = float(pay['amount']) - float(pay['feeAmount'])
@@ -266,7 +270,7 @@ def pays_message_months(message):
     months[10] += 0.00008671
 
     # список выплат
-    for pay in private_api.mining_payouts()['list'][:2190]:
+    for pay in private_api.mining_payouts(365*6)['list'][:2190]:
         datetime_pay = datetime.datetime.fromtimestamp(pay['created'] // 1000).date().month
         pay_btc = float(pay['amount']) - float(pay['feeAmount'])
 
