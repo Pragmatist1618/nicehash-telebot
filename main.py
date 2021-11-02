@@ -50,7 +50,8 @@ class P_schedule:
     def start_schedule():  # Запуск schedule
         # Параметры для schedule
         # Отпавка по времени
-        schedule.every().day.at("09:00").do(P_schedule.send_stat_last_day)
+        schedule.every().monday.at("09:00").do(P_schedule.send_stat_last_week)
+        # schedule.every().day.at("09:00").do(P_schedule.send_stat_last_day)
         # Отправка по таймеру
         # schedule.every(1).minutes.do(P_schedule.send_message2)
 
@@ -71,6 +72,22 @@ class P_schedule:
         pay_btc = 0.0
         # список выплат
         for pay in private_api.mining_payouts()['list'][:6]:
+            pay_btc += float(pay['amount'])
+        pay_rub = round(float(pay_btc) * btcrub * 0.9898, 2)
+
+        for user in access_list:
+            try:
+                logging('%s send stat last day' % user)
+                bot.send_message(user, msg_pay_day % (round(pay_btc, 8), pay_rub))
+            except:
+                logging('%s error time msg' % user)
+
+    @staticmethod
+    def send_stat_last_week():
+        btcrub = public_api.get_price()['BTCUSDT'] * float(ExchangeRates()['USD'].value) * 0.9898
+        pay_btc = 0.0
+        # список выплат
+        for pay in private_api.mining_payouts(42)['list']:
             pay_btc += float(pay['amount'])
         pay_rub = round(float(pay_btc) * btcrub * 0.9898, 2)
 
